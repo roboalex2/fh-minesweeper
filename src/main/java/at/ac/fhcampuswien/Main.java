@@ -12,9 +12,15 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("minesweeper.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("minesweeper.fxml"));
+        fxmlLoader.setController(new Controller(primaryStage));
+        Parent root = fxmlLoader.load();
+
         primaryStage.setTitle("Minesweeper");
-        primaryStage.setScene(new Scene(root));
+        primaryStage.setResizable(false);
+
+        Scene scene = new Scene(root);
+        primaryStage.setScene(scene);
         primaryStage.show();
     }
 

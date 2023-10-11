@@ -4,4 +4,6 @@ module at.ac.fhcampuswien {
 
     opens at.ac.fhcampuswien to javafx.fxml;
     exports at.ac.fhcampuswien;
+    exports at.ac.fhcampuswien.dialog;
+    opens at.ac.fhcampuswien.dialog to javafx.fxml;
 }

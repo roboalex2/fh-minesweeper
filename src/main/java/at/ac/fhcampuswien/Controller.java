@@ -1,22 +1,25 @@
 package at.ac.fhcampuswien;
 
-import javafx.collections.ObservableList;
+import at.ac.fhcampuswien.dialog.SettingsDialog;
+import at.ac.fhcampuswien.model.GameSettings;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 
 public class Controller {
+    private final Stage stage;
 
     // Model
     private Board board;
 
     // private
     private boolean isActive;
+    private GameSettings gameSettings;
 
     // View Fields
     @FXML
@@ -26,16 +29,24 @@ public class Controller {
     @FXML
     private Button restart;
 
+    public Controller(Stage stage) {
+        this.stage = stage;
+    }
+    
+    
     @FXML
     public void initialize() {
         isActive = true;
-        this.board = new Board();
+        this.gameSettings = SettingsDialog.display();
+        this.board = new Board(gameSettings);
         Cell[][] cells = this.board.getCells();
-        for (int i = 0; i < Board.ROWS; i++) {
-            for (int j = 0; j < Board.COLS; j++) {
+        for (int i = 0; i < gameSettings.getHeight(); i++) {
+            for (int j = 0; j < gameSettings.getWidth(); j++) {
                 grid.add(cells[i][j], j, i);
             }
         }
+        stage.setWidth(gameSettings.getWidth() * Board.CELL_SIZE + 17);
+        stage.setHeight(gameSettings.getHeight() * Board.CELL_SIZE + 90);
     }
 
     @FXML
@@ -45,6 +56,7 @@ public class Controller {
                 int col = (int) event.getX() / Board.CELL_SIZE;
                 int row = (int) event.getY() / Board.CELL_SIZE;
                 if (event.getButton() == MouseButton.PRIMARY) {
+                    board.uncoverAllCells();// TODO remove
                     if (board.uncover(row, col)) {
                         if (board.isGameOver()) {
                             board.uncoverAllCells();
@@ -58,13 +70,13 @@ public class Controller {
                 } else if (event.getButton() == MouseButton.SECONDARY) {
                     board.markCell(row, col);
                 }
-                if (board.getCellsUncovered() == (Board.ROWS * Board.COLS - Board.NUM_MINES)
-                        && board.getMinesMarked() == Board.NUM_MINES) {
+                if (board.getCellsUncovered() == (gameSettings.getHeight() * gameSettings.getWidth() - gameSettings.getMines())
+                        && board.getMinesMarked() == gameSettings.getMines()) {
                     message.setText("Glückwunsch! Du hast gewonnen.");
                     isActive = false;
                 }
                 if (isActive)
-                    message.setText(" Marker: " + board.getMinesMarked() + "/" + Board.NUM_MINES);
+                    message.setText(" Marker: " + board.getMinesMarked() + "/" + gameSettings.getMines());
             }
         }
     }
@@ -73,14 +85,5 @@ public class Controller {
     public void restart(ActionEvent actionEvent) {
         grid.getChildren().clear();
         initialize();
-
-        // Testing ;) add Methode fügt nur hinzu. das bestehende bleibt. daher vorher clear.
-        /*
-        ObservableList<Node> childrens = grid.getChildren();
-        for (Node node : childrens) {
-            Cell c = (Cell) node;
-            System.out.println(GridPane.getColumnIndex(c) + " " + GridPane.getRowIndex(c));
-        }
-        */
     }
 }

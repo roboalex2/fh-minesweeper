@@ -1,53 +1,68 @@
 package at.ac.fhcampuswien;
 
+import at.ac.fhcampuswien.model.GameSettings;
 import javafx.scene.image.Image;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Board {
     public static final int CELL_SIZE = 15;
-    public static final int ROWS = 25;
-    public static final int COLS = 25;
-    public static final int NUM_IMAGES = 13;
-    public static final int NUM_MINES = 50;
+
 
     // Add further constants or let the cell keep track of its state.
-
+    private GameSettings gameSettings;
     private Cell cells[][];
+    private HashSet<Cell> minedCells = new HashSet<>();
+    private HashSet<Cell> flaggedCells = new HashSet<>();
+    private HashSet<Cell> revealedCells = new HashSet<>();
     private Image[] images;
-    private int cellsUncovered;
-    private int minesMarked;
     private boolean gameOver;
 
     /**
      * Constructor preparing the game. Playing a new game means creating a new Board.
      */
-    public Board() {
-        cells = new Cell[ROWS][COLS];
-        cellsUncovered = 0;
-        minesMarked = 0;
+    public Board(GameSettings settings) {
+        cells = new Cell[settings.getHeight()][settings.getWidth()];
         gameOver = false;
-        loadImages();
+        this.gameSettings = settings;
         // at the beginning every cell is covered
-        for (int r = 0; r < ROWS; r++) {
-            for (int c = 0; c < COLS; c++) {
-                cells[r][c] = new Cell(images[0], 0);
+        for (int r = 0; r < settings.getHeight(); r++) {
+            for (int c = 0; c < settings.getWidth(); c++) {
+                cells[r][c] = new Cell(this);
             }
         }
-        // TODO cover cells. complete the grid with calls to new Cell();
 
-        // set neighbours for convenience
-        // TODO compute all neighbours for a cell.
+        for (int r = 0; r < settings.getHeight(); r++) {
+            for (int c = 0; c < settings.getWidth(); c++) {
+                cells[r][c].setNeighbours(computeNeighbours(r, c));
+            }
+        }
 
         // then we place NUM_MINES on the board and adjust the neighbours (1,2,3,4,... if not a mine already)
-        // TODO place random mines.
+        ArrayList<Cell> allCells = Arrays.stream(cells)
+                .flatMap(Arrays::stream)
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+        for (int i = 0; i < gameSettings.getMines() && allCells.size() > 1; i++) {
+            Cell target = allCells.get(getRandomNumberInts(0, allCells.size() - 1));
+            minedCells.add(target);
+            allCells.remove(target);
+        }
+    }
+
+    private List<Cell> computeNeighbours(int row, int col) {
+        ArrayList<Cell> neighbours = new ArrayList<>();
+        for (int y = row - 1; y >= row + 1; y ++) {
+            for (int x = col - 1; x >= col + 1; x ++) {
+                if (x > 0 && y > 0 &&
+                        y < gameSettings.getHeight() &&
+                        x < gameSettings.getWidth() &&
+                        y != row && x != col
+                ) {
+                    neighbours.add(cells[y][x]);
+                }
+            }
+        }
+        return neighbours;
     }
 
     public boolean uncover(int row, int col) {
@@ -66,30 +81,25 @@ public class Board {
 
 
     public void uncoverAllCells() {
-        //TODO Uncover everything in case a mine was hit and the game is over.
+        Arrays.stream(cells)
+                .flatMap(Arrays::stream)
+                .forEach(cell -> {
+                    revealedCells.add(cell);
+                    cell.refreshImage();
+                });
+
     }
 
-
-    public List<Cell> computeNeighbours(int x, int y) {
-        List<Cell> neighbours = new ArrayList<>();
-        // TODO get all the neighbours for a given cell. this means coping with mines at the borders.
-        return neighbours;
+    public HashSet<Cell> getMinedCells() {
+        return minedCells;
     }
 
-    /**
-     * Loads the given images into memory. Of course you may use your own images and layouts.
-     */
-    private void loadImages() {
-        images = new Image[NUM_IMAGES];
-        for (int i = 0; i < NUM_IMAGES; i++) {
-            var path = "sprites/" + i + ".png";
-            try {
-                URL url = getClass().getClassLoader().getResource(path);
-                this.images[i] = new Image(url.openStream());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    public HashSet<Cell> getFlaggedCells() {
+        return flaggedCells;
+    }
+
+    public HashSet<Cell> getRevealedCells() {
+        return revealedCells;
     }
 
     public Cell[][] getCells() {
@@ -109,7 +119,7 @@ public class Board {
     }
 
     public int getMinesMarked() {
-        return minesMarked;
+        return flaggedCells.size();
     }
 
     public boolean isGameOver() {
@@ -117,7 +127,6 @@ public class Board {
     }
 
     public int getCellsUncovered() {
-        return cellsUncovered;
+        return revealedCells.size();
     }
-
 }
