@@ -64,9 +64,9 @@ public class Cell extends Pane {
     }
 
     public void refreshImage() {
-        if (isFlagged() && !hasMine()) {
+        if (isFlagged() && hasMine()) {
             this.view.setImage(IMAGES[11]);
-        } else if (isFlagged() && hasMine()) {
+        } else if (isFlagged() && !hasMine()) {
             if (gameBoard.isGameOver()) {
                 this.view.setImage(IMAGES[12]);
             } else {

@@ -9,13 +9,13 @@ import static java.util.function.Predicate.not;
 public class Board {
     public static final int CELL_SIZE = 15;
 
-
     private GameSettings gameSettings;
     private Cell cells[][];
     private HashSet<Cell> minedCells = new HashSet<>();
     private HashSet<Cell> flaggedCells = new HashSet<>();
     private HashSet<Cell> revealedCells = new HashSet<>();
     private boolean gameOver;
+
 
     /**
      * Constructor preparing the game. Playing a new game means creating a new Board.
