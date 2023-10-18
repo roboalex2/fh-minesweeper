@@ -1,9 +1,12 @@
 package at.ac.fhcampuswien.board;
 
+import at.ac.fhcampuswien.Main;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -84,9 +87,15 @@ public class Cell extends Pane {
     private static Image[] loadImages() {
         Image[] images = new Image[NUM_IMAGES];
         for (int i = 0; i < NUM_IMAGES; i++) {
-            var path = "sprites/" + i + ".png";
+            var path = i + ".png";
             try {
-                URL url = Cell.class.getClassLoader().getResource(path);
+                URL url = Main.class.getClassLoader().getResource("sprites/" + path);
+                if (url == null) {
+                    // For some godforsaken reason if getClassLoader().getResource() is called in gradle context it can't access subfolders...
+                    // But it can load the folder itself... so i just add the file manually.
+                    url = Main.class.getClassLoader().getResource("sprites");
+                    url = new URL(url.getProtocol(), "", -1, url.getFile() + path);
+                }
                 images[i] = new Image(url.openStream());
             } catch (IOException e) {
                 e.printStackTrace();
