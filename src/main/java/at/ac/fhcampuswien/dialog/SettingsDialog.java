@@ -13,31 +13,28 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SettingsDialog {
 
-    private static final String DEFAULT_MINE_AMOUNT = "64";
-    private static final String DEFAULT_CELL_WIDTH = "25";
-    private static final String DEFAULT_CELL_HEIGHT = "25";
-
-    public static GameSettings display() {
+    public static GameSettings display(GameSettings gameSettings) {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
 
         TextField minesField = new TextField();
         minesField.textProperty().addListener(new NumberInputChangeListener(minesField));
-        minesField.setText(DEFAULT_MINE_AMOUNT);
+        minesField.setText(Integer.toString(gameSettings.getMines()));
         minesField.setMaxWidth(50);
 
         TextField widthField = new TextField();
         widthField.textProperty().addListener(new NumberInputChangeListener(widthField));
-        widthField.setText(DEFAULT_CELL_WIDTH);
+        widthField.setText(Integer.toString(gameSettings.getWidth()));
         widthField.setMaxWidth(50);
 
         TextField heightField = new TextField();
         heightField.textProperty().addListener(new NumberInputChangeListener(heightField));
-        heightField.setText(DEFAULT_CELL_HEIGHT);
+        heightField.setText(Integer.toString(gameSettings.getHeight()));
         heightField.setMaxWidth(50);
 
 
@@ -55,7 +52,7 @@ public class SettingsDialog {
                 alert.setTitle("To many mines!");
                 alert.setHeaderText("To many mines!");
                 alert.setContentText(String.format(
-                        "Expected between [%d, %d] mines. Got: %d",
+                        "Expected between [%d, %d[ mines. Got: %d",
                         1,
                         width.get() * height.get(),
                         mines.get()
@@ -64,12 +61,12 @@ public class SettingsDialog {
                 return;
             }
 
-            if (width.get() <= 1 || width.get() > 70 || height.get() <= 1 || height.get() > 70) {
+            if (width.get() <= 1 || width.get() > 60 || height.get() <= 1 || height.get() > 60) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Board size invalid!");
                 alert.setHeaderText("Board size invalid!");
                 alert.setContentText(String.format(
-                        "Width and height must be between [2, 70]. Got: width='%d', height='%d'",
+                        "Width and height must be between [2, 60]. Got: width='%d', height='%d'",
                         width.get(),
                         height.get()
                 ));
@@ -99,18 +96,21 @@ public class SettingsDialog {
         layout.add(widthField, 3,1);
         layout.add(button, 0, 2);
 
+        AtomicBoolean closed = new AtomicBoolean(false);
         Scene scene = new Scene(layout, 300, 100);
         stage.setResizable(false);
         stage.initStyle(StageStyle.DECORATED);
         stage.setOnCloseRequest(e -> {
-            mines.set(Integer.parseInt(DEFAULT_MINE_AMOUNT));
-            width.set(Integer.parseInt(DEFAULT_CELL_WIDTH));
-            height.set(Integer.parseInt(DEFAULT_CELL_HEIGHT));
+            closed.set(true);
             stage.close();
         });
         stage.setTitle("Game Settings");
         stage.setScene(scene);
         stage.showAndWait();
+
+        if (closed.get()) {
+            return null;
+        }
 
         return new GameSettings(mines.get(), height.get(), width.get());
     }

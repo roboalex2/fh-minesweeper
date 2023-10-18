@@ -1,4 +1,4 @@
-package at.ac.fhcampuswien;
+package at.ac.fhcampuswien.board;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -13,14 +13,19 @@ public class Cell extends Pane {
     private static final Image[] IMAGES = loadImages();
 
     private final Board gameBoard;
+    private final int row;
+    private final int col;
     private ImageView view;
-
     private List<Cell> neighbours;
 
-    public Cell(Board board) {
-        view = new ImageView(IMAGES[10]);
-        getChildren().add(view);
+    public Cell(Board board, int row, int col) {
         this.gameBoard = board;
+        this.row = row;
+        this.col = col;
+        view = new ImageView(IMAGES[10]);
+        view.setFitHeight(Board.CELL_SIZE);
+        view.setFitWidth(Board.CELL_SIZE);
+        getChildren().add(view);
     }
 
     public void setNeighbours(List<Cell> neighbours) {
@@ -28,11 +33,11 @@ public class Cell extends Pane {
         refreshImage();
     }
 
-    private List<Cell> getNeighbours() {
+    public List<Cell> getNeighbours() {
         return neighbours;
     }
 
-    private List<Cell> getMinedNeighbours() {
+    public List<Cell> getMinedNeighbours() {
         return getNeighbours().stream()
                 .filter(Cell::hasMine)
                 .toList();
@@ -48,6 +53,14 @@ public class Cell extends Pane {
 
     public boolean isRevealed() {
         return gameBoard.getRevealedCells().contains(this);
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    public int getCol() {
+        return col;
     }
 
     public void refreshImage() {
